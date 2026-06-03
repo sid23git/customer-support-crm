@@ -22,7 +22,7 @@ def startup_event():
     init_db()
 
 # CORS configuration
-origins = ["http://localhost:5173", "*"]
+origins = ["*"]
 # FastAPI CORSMiddleware asserts that allow_credentials cannot be True if origin is wildcard (*)
 # Since our simple CRM frontend does not rely on cookies or auth headers, we disable credentials
 # when "*" is in allow_origins to prevent runtime errors.
@@ -40,6 +40,5 @@ app.add_middleware(
 app.include_router(tickets_router, prefix="/api")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    # Run with uvicorn on port 5000
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
