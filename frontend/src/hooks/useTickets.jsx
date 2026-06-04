@@ -49,6 +49,8 @@ export const TicketsProvider = ({ children }) => {
   const [isFallbackActive, setIsFallbackActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [search, setSearch] = useState('');
 
   // Initialize localStorage if empty
   useEffect(() => {
@@ -57,25 +59,26 @@ export const TicketsProvider = ({ children }) => {
     }
   }, []);
 
-  const fetchTickets = async (search = '', status = '') => {
+  const fetchTickets = async (searchVal = search, statusVal = activeTab) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getTickets(search, status);
+      const data = await api.getTickets(searchVal, statusVal);
       setTickets(data);
       setIsFallbackActive(false);
     } catch (err) {
       console.warn('API connection failed. Falling back to localStorage.', err);
       setIsFallbackActive(true);
+      setError(err.message || 'API connection failed. Falling back to local database.');
       
       let localData = JSON.parse(localStorage.getItem('crm_tickets') || '[]');
       
       // Filter locally
-      if (status && status !== 'all') {
-        localData = localData.filter(t => t.status.toLowerCase() === status.toLowerCase());
+      if (statusVal && statusVal !== 'all') {
+        localData = localData.filter(t => t.status.toLowerCase() === statusVal.toLowerCase());
       }
-      if (search) {
-        const query = search.toLowerCase();
+      if (searchVal) {
+        const query = searchVal.toLowerCase();
         localData = localData.filter(t => 
           t.customer_name.toLowerCase().includes(query) ||
           t.customer_email.toLowerCase().includes(query) ||
@@ -119,10 +122,12 @@ export const TicketsProvider = ({ children }) => {
     try {
       const newTicket = await api.createTicket(ticketData);
       setIsFallbackActive(false);
+      await fetchTickets(); // Re-fetch list to sync context tickets state
       return newTicket;
     } catch (err) {
       console.warn('API connection failed to create ticket. Saving to localStorage.', err);
       setIsFallbackActive(true);
+      setError(err.message || 'API connection failed. Saved to local storage.');
       
       const localData = JSON.parse(localStorage.getItem('crm_tickets') || '[]');
       const newId = localData.length > 0 ? Math.max(...localData.map(t => t.id || 0)) + 1 : 1;
@@ -137,6 +142,7 @@ export const TicketsProvider = ({ children }) => {
       };
       const updatedData = [newTicket, ...localData];
       localStorage.setItem('crm_tickets', JSON.stringify(updatedData));
+      setTickets(updatedData); // Immediately update context state with local fallback data
       return newTicket;
     } finally {
       setLoading(false);
@@ -193,7 +199,11 @@ export const TicketsProvider = ({ children }) => {
       fetchSingleTicket,
       addTicket,
       saveTicketUpdates,
-      setError
+      setError,
+      activeTab,
+      setActiveTab,
+      search,
+      setSearch
     }}>
       {children}
     </TicketsContext.Provider>

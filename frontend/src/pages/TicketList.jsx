@@ -12,13 +12,25 @@ const TABS = [
 ];
 
 function TicketList() {
-  const { tickets, fetchTickets, loading } = useTickets();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const { 
+    tickets, 
+    fetchTickets, 
+    loading, 
+    error,
+    activeTab, 
+    setActiveTab, 
+    search, 
+    setSearch 
+  } = useTickets();
+
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   // Debounce search query changes by 300ms
   useEffect(() => {
+    if (search === '') {
+      setDebouncedSearch('');
+      return;
+    }
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
     }, 300);
@@ -49,6 +61,16 @@ function TicketList() {
           New Ticket
         </Link>
       </div>
+
+      {/* Error alert banner */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200/50 rounded-md text-xs font-semibold text-red-800 flex items-center gap-2 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* Filter Options & Search bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">

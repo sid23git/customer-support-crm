@@ -74,10 +74,10 @@ function TicketDetail() {
 
       setNote(''); // Clear note textarea on success
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 4000);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error('Save failed:', err);
-      setSaveError(err.message || 'Failed to apply ticket updates. Please try again.');
+      setSaveError('Failed to save updates');
     } finally {
       setSaving(false);
     }

@@ -5,12 +5,21 @@ import { useTickets } from '../hooks/useTickets';
 function CreateTicket() {
   const { addTicket } = useTickets();
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
     subject: '',
     description: ''
   });
+  
+  const [errors, setErrors] = useState({
+    customer_name: '',
+    customer_email: '',
+    subject: '',
+    description: ''
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -20,16 +29,57 @@ function CreateTicket() {
       ...prev,
       [name]: value
     }));
+    // Clear error message when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-
+    
+    // Clear validation errors
+    const newErrors = {
+      customer_name: '',
+      customer_email: '',
+      subject: '',
+      description: ''
+    };
+    
     const { customer_name, customer_email, subject, description } = formData;
+    let isValid = true;
 
-    if (!customer_name.trim() || !customer_email.trim() || !subject.trim() || !description.trim()) {
-      setErrorMsg('All fields are required. Please fill out the form completely.');
+    if (!customer_name.trim()) {
+      newErrors.customer_name = 'Customer name is required.';
+      isValid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customer_email.trim()) {
+      newErrors.customer_email = 'Email address is required.';
+      isValid = false;
+    } else if (!emailRegex.test(customer_email.trim())) {
+      newErrors.customer_email = 'Please enter a valid email address.';
+      isValid = false;
+    }
+
+    if (!subject.trim()) {
+      newErrors.subject = 'Subject is required.';
+      isValid = false;
+    }
+
+    if (!description.trim()) {
+      newErrors.description = 'Description is required.';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    if (!isValid) {
       return;
     }
 
@@ -41,6 +91,16 @@ function CreateTicket() {
         subject: subject.trim(),
         description: description.trim()
       });
+      
+      // Form fields should clear after successful submission.
+      setFormData({
+        customer_name: '',
+        customer_email: '',
+        subject: '',
+        description: ''
+      });
+      
+      // Redirect to home page.
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -68,7 +128,7 @@ function CreateTicket() {
       </div>
 
       {/* Form Container */}
-      <form onSubmit={handleSubmit} className="bg-white border border-neutral-200/80 rounded-lg p-6 space-y-5 shadow-sm">
+      <form onSubmit={handleSubmit} noValidate className="bg-white border border-neutral-200/80 rounded-lg p-6 space-y-5 shadow-sm">
         {errorMsg && (
           <div className="p-3.5 bg-red-50 border border-red-200/60 rounded-md text-xs font-semibold text-red-800">
             {errorMsg}
@@ -85,13 +145,19 @@ function CreateTicket() {
               type="text"
               id="customer_name"
               name="customer_name"
-              required
               placeholder="e.g. Sarah Jenkins"
               value={formData.customer_name}
               onChange={handleChange}
               disabled={submitting}
-              className="w-full px-3.5 py-2 text-xs font-medium bg-white border border-neutral-200 rounded-md placeholder-neutral-350 focus:outline-none focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 transition-colors disabled:bg-neutral-50"
+              className={`w-full px-3.5 py-2 text-xs font-medium bg-white border rounded-md placeholder-neutral-350 focus:outline-none focus:ring-1 transition-colors disabled:bg-neutral-50 ${
+                errors.customer_name 
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-neutral-200 focus:border-neutral-400 focus:ring-neutral-400'
+              }`}
             />
+            {errors.customer_name && (
+              <p className="text-[11px] font-semibold text-red-650 mt-1">{errors.customer_name}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -102,13 +168,19 @@ function CreateTicket() {
               type="email"
               id="customer_email"
               name="customer_email"
-              required
               placeholder="e.g. sarah@acme.com"
               value={formData.customer_email}
               onChange={handleChange}
               disabled={submitting}
-              className="w-full px-3.5 py-2 text-xs font-medium bg-white border border-neutral-200 rounded-md placeholder-neutral-350 focus:outline-none focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 transition-colors disabled:bg-neutral-50"
+              className={`w-full px-3.5 py-2 text-xs font-medium bg-white border rounded-md placeholder-neutral-350 focus:outline-none focus:ring-1 transition-colors disabled:bg-neutral-50 ${
+                errors.customer_email 
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-neutral-200 focus:border-neutral-400 focus:ring-neutral-400'
+              }`}
             />
+            {errors.customer_email && (
+              <p className="text-[11px] font-semibold text-red-650 mt-1">{errors.customer_email}</p>
+            )}
           </div>
         </div>
 
@@ -121,13 +193,19 @@ function CreateTicket() {
             type="text"
             id="subject"
             name="subject"
-            required
             placeholder="Brief summary of the issue"
             value={formData.subject}
             onChange={handleChange}
             disabled={submitting}
-            className="w-full px-3.5 py-2 text-xs font-medium bg-white border border-neutral-200 rounded-md placeholder-neutral-350 focus:outline-none focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 transition-colors disabled:bg-neutral-50"
+            className={`w-full px-3.5 py-2 text-xs font-medium bg-white border rounded-md placeholder-neutral-350 focus:outline-none focus:ring-1 transition-colors disabled:bg-neutral-50 ${
+              errors.subject 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                : 'border-neutral-200 focus:border-neutral-400 focus:ring-neutral-400'
+            }`}
           />
+          {errors.subject && (
+            <p className="text-[11px] font-semibold text-red-650 mt-1">{errors.subject}</p>
+          )}
         </div>
 
         {/* Description Field */}
@@ -138,14 +216,20 @@ function CreateTicket() {
           <textarea
             id="description"
             name="description"
-            required
             rows="5"
             placeholder="Detailed overview of the customer request, including steps to reproduce or billing discrepancies..."
             value={formData.description}
             onChange={handleChange}
             disabled={submitting}
-            className="w-full px-3.5 py-2 text-xs font-medium bg-white border border-neutral-200 rounded-md placeholder-neutral-350 focus:outline-none focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 transition-colors disabled:bg-neutral-50 resize-y min-h-[100px]"
+            className={`w-full px-3.5 py-2 text-xs font-medium bg-white border rounded-md placeholder-neutral-350 focus:outline-none focus:ring-1 transition-colors disabled:bg-neutral-50 resize-y min-h-[100px] ${
+              errors.description 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                : 'border-neutral-200 focus:border-neutral-400 focus:ring-neutral-400'
+            }`}
           />
+          {errors.description && (
+            <p className="text-[11px] font-semibold text-red-650 mt-1">{errors.description}</p>
+          )}
         </div>
 
         {/* Form Actions */}
