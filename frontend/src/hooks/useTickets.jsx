@@ -161,11 +161,12 @@ export const TicketsProvider = ({ children }) => {
       }
       const existingTicket = localData[ticketIndex];
       const updatedNotes = [...(existingTicket.notes || [])];
-      if (updates.comment) {
+      const noteText = updates.note !== undefined ? updates.note : updates.comment;
+      if (noteText && noteText.trim()) {
         const newNoteId = updatedNotes.length > 0 ? Math.max(...updatedNotes.map(n => n.id || 0)) + 1 : 1;
         updatedNotes.push({
           id: newNoteId,
-          note_text: updates.comment,
+          note_text: noteText.trim(),
           created_at: new Date().toISOString()
         });
       }

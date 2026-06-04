@@ -56,18 +56,28 @@ function TicketDetail() {
     setSaveSuccess(false);
     setSaveError('');
 
+    const payload = {
+      status: status,
+      note: note.trim()
+    };
+
+    console.log('PUT request body:', payload);
+
     try {
-      const updated = await saveTicketUpdates(ticket_id, {
-        status,
-        comment: note.trim() || undefined
-      });
-      setTicket(updated);
+      const response = await saveTicketUpdates(ticket_id, payload);
+      console.log('PUT response:', response);
+
+      // Re-fetch fresh ticket details from backend and update UI states
+      const freshTicket = await fetchSingleTicket(ticket_id);
+      setTicket(freshTicket);
+      setStatus(freshTicket.status);
+
       setNote(''); // Clear note textarea on success
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err) {
-      console.error(err);
-      setSaveError('Failed to apply ticket updates. Please try again.');
+      console.error('Save failed:', err);
+      setSaveError(err.message || 'Failed to apply ticket updates. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -208,7 +218,7 @@ function TicketDetail() {
             <form onSubmit={handleSave} className="space-y-4">
               {saveSuccess && (
                 <div className="p-2.5 bg-emerald-50 border border-emerald-200/50 rounded-md text-[11px] font-semibold text-emerald-800">
-                  Updates applied successfully.
+                  Updates saved successfully.
                 </div>
               )}
               {saveError && (
