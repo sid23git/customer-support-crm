@@ -5,7 +5,10 @@
  */
 export function formatDate(dateVal) {
   if (!dateVal) return '';
-  const date = new Date(dateVal);
+  const parsedVal = typeof dateVal === 'string' && !dateVal.includes('Z')
+    ? dateVal.replace(' ', 'T') + 'Z'
+    : dateVal;
+  const date = new Date(parsedVal);
   if (isNaN(date.getTime())) return '';
   
   return date.toLocaleDateString('en-US', {
@@ -22,7 +25,10 @@ export function formatDate(dateVal) {
  */
 export function formatRelativeTime(dateVal) {
   if (!dateVal) return '';
-  const date = new Date(dateVal);
+  const parsedVal = typeof dateVal === 'string' && !dateVal.includes('Z')
+    ? dateVal.replace(' ', 'T') + 'Z'
+    : dateVal;
+  const date = new Date(parsedVal);
   if (isNaN(date.getTime())) return '';
   
   const now = new Date();
